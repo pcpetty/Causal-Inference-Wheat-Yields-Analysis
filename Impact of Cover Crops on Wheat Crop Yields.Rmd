@@ -1,0 +1,232 @@
+---
+title: "Crop Yield"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Impact of Cover Crops on Wheat Crop Yields
+
+As the global population continues to increase, scientists and policymakers are looking for ways to improve our agricultural systems so that we can feed more people.
+
+The data used in this project is adapted from the 2017 Census of Agriculture performed by the U.S. Department of Agriculture (USDA). This survey is a complete count and characterization of U.S. farms and agricultural producers. The data include various information about agricultural land area and use, farming practices, and crop yields at the county level.
+
+There are several farming strategies that promote the long-term health of agricultural land:
+
+    Agricultural land easements: contracts between the government and farmers where the government pays landowners to leave areas of the land untouched.
+    
+    Conservation tillage: a method that helps protect the soil surface and reduce erosion from wind and water between crop harvest and planting.
+    
+    Cover crops: plants used to slow erosion, return nutrients to the soil, and help smother weeds and control pests.
+
+I am to use inverse probability of treatment weighting (IPTW) to determine whether the use of cover crops causes an increase in crop yields.
+
+# Import libraries
+```{r, message=FALSE}
+library(palmerpenguins)
+library(tidyverse)
+library(cobalt)
+library(WeightIt)
+library(lmtest)
+library(sandwich)
+library(ggplot2)
+```
+
+# Data Exploration
+
+```{r}
+# Load file as dataframe
+farm_df <- read.csv("farms.csv")
+```
+
+```{r}
+# Inspect dataframe
+head(farm_df)
+```
+
+# Initial data observations
+
+Outcome:
+
+    total_yield: represents the average total yield of wheat in bushels per acre.
+
+Treatment:
+
+    cover_10: indicates whether at least 10% of farms in a county employ cover crops.
+
+Predictors:
+
+    region: geographic region where the county is located.
+
+    total_avg: average total size of farms (thousands of acres).
+
+    age_avg: average age of the primary farm operator (years).
+
+    experience_avg: average number of years of farming experience of the primary farm operator (years).
+
+    insurance_avg: average area of land with crop insurance (thousands of acres).
+
+    easement_p: indicates the average percent of land under an easement in the county.
+
+    conservation_till_avg: average area of land that uses conservation tillage methods (acres).
+
+    fertilizer_per_area: average cost of fertilizers used per acre (hundreds of thousands of dollars).
+
+# Examine Initial Overlap and Balance
+
+Assess overlap and balance visually for a couple of variables to compare counties with AT LEAST 10% of farms using cover crops and counties with LESS THAN 10% of farms using cover crops.
+
+I will use a balance plot for the age_avg variable. 
+
+Do the treatment and control distributions appear to be centered in the same location and have similar spreads?
+
+```{r}
+# Balance plot for the average age
+bal.plot(
+  x = cover_10 ~ age_avg, #formula
+  data = farm_df, #dataset
+  var.name = "age_avg", #variable
+  colors = c("#E69F00", "#009E73") #set fill colors
+)
+```
+
+Are the proportions of counties in the treatment versus control groups similar across the four regions?
+
+```{r}
+# Balance plot for region
+bal.plot(
+  x = cover_10 ~ region, #formula
+  data = farm_df, #dataset
+  var.name = "region", #variable
+  colors = c("#E69F00", "#009E73") #set fill colors
+)
+```
+
+Examine the standardized mean differences (SMD) and variance ratios for all the predictor variables according to the treatment group. Check whether the balance measurements fall outside of the guidelines of ±0.1 for SMDs and between 0.5 and 2 for variance ratios.
+
+```{r}
+# Balance table to show standardized mean differences (SMD) and variance ratios
+bal.tab(
+  x = cover_10 ~ age_avg + region, data = farm_df,
+  binary = "std", disp.v.ratio = TRUE
+)
+```
+
+# Perform IPTW Procedure and Re-check Balance
+
+Perform the inverse probability of treatment weighting (IPTW) procedure to see if we can minimize imbalance between the treatment groups before estimating the causal treatment effect."
+
+"Next, perform an IPTW procedure using region, average farm size, average number of farms with crop insurance, and average cost of fertilizer per acre as predictors in the propensity score model. Calculate weights in order to estimate the average treatment effect (ATE).
+
+
+```{r}
+farm_iptw <- weightit(
+  formula = cover_10 ~ region +
+    total_avg + insurance_avg + fertilizer_per_area,
+  data = farm_df, method = "ps", estimand = "ATE"
+)
+
+farm_iptw
+```
+
+Create a Love plot showing the SMD between treatment groups for each variable in the propensity score model. Display the SMD for binary variables and the SMD threshold of ± 0.1.
+
+```{r}
+# Love plot showing the SMD
+# between treatment groups for each variable in the propensity score model
+love.plot(
+  farm_iptw, binary = "std", thresholds = c(m = 0.1)
+)
+```
+
+# Refine Propensity Score Model
+
+Can I improve the balance by tuning the propensity score model?
+
+Re-run the IPTW procedure with a new propensity score model. Achieve this by removing the fertilizer_per_area variable from the model. Then add varibles:
+
+- the average age of the primary producer
+- the average experience of the primary producer
+- the average percent of land under easement
+- the average number of farms using conservation tillage
+
+```{r}
+farm_iptw2 <- farm_iptw2 <- weightit(
+  formula = cover_10 ~ region + total_avg
+  + age_avg + experience_avg
+  + easement_p + conservation_till_avg
+  + insurance_avg,
+  data = farm_df, method = "ps", estimand = "ATE"
+)
+
+farm_iptw2
+```
+
+```{r}
+# Love plot showing the SMD between
+# treatment groups for each variable
+# in the propensity score model
+love.plot(
+  farm_iptw2, binary = "std", thresholds = c(m = 0.1)
+)
+```
+
+The Love plot shows SMD values closer to zero than the previous model.
+
+Next, inspect the distribution of propensity scores between treatment groups to measue IPTW procedure performance.
+
+```{r}
+# Generate a balance plot to display
+# the distribution of propensity scores in each treatment group before
+# AND after the weighting process
+bal.plot(
+  x = farm_iptw, var.name = "prop.score", which = "both"
+)
+
+```
+
+```{r}
+bal.plot(
+  x = farm_iptw2, var.name = "prop.score", which = "both"
+)
+```
+
+Do the distributions of the weighted propensity scores look closer to identical, and are they overlapping each other?
+
+# Estimate Causal Treatment Effect
+
+Last step of the analysis: 
+
+- Fit the final outcome model to estimate the causal effect of cover crop usage on crop yields.
+
+1. Fit the outcome regression model with total crop yield as the outcome, cover crop usage as the treatment variable, and the other variables from the second propensity score model as the additional predictors. 
+- Include the weights from the IPTW procedure in the regression model.
+
+```{r}
+yield_mod <- glm(
+  total_yield ~ cover_10 + region
+  + total_avg + age_avg
+  + experience_avg + easement_p
+  + conservation_till_avg + insurance_avg,
+  data = farm_df, weights = farm_iptw$weights
+)
+```
+
+When IPTW is used to estimate the causal treatment effect, a robust standard error estimate is required.
+
+Estimate the regression parameters for the weighted regression model using the coeftest() function. Incorporate a robust standard error estimator from the sandwich package.
+
+```{r}
+# Estimate regression coefficients
+# for weighted outcome model with
+# robust standard errors
+coeftest(
+  yield_mod, vcov. = vcovHC
+)
+```
+
+## Results Interpretation:
+
+My estimate of the ATE is about 3.58. I estimate that when counties have at least 10% of farms with cover crops, average total yield of wheat increases by about 3.58 bushels per acre.

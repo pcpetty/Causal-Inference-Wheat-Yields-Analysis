@@ -37,7 +37,7 @@ The dataset used in this project includes features such as soil quality, cover c
 
 ## Results
 
-The analysis suggests that [insert key findings here]. These findings indicate that cover crops can have a [positive/negative] impact on wheat yields under specific conditions.
+The Average Treatment Effect (ATE) is about 3.58. I estimate that when counties have at least 10% of farms with cover crops, average total yield of wheat increases by about 3.58 bushels per acre.
 
 ## Reproducing the Analysis
 

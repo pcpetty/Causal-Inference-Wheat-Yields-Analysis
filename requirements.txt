@@ -1,0 +1,16 @@
+# This file lists the necessary R packages required for the analysis:
+tidyverse
+causalinference
+knitr
+ggplot2
+dplyr
+
+# To install all packages from the requirements.txt, you can use the following script in R:
+
+# Read the requirements file
+packages <- readLines("requirements.txt")
+
+# Install missing packages
+install.packages(setdiff(packages, rownames(installed.packages())))
+
+# This will install any packages listed in requirements.txt that are not already installed on your system.

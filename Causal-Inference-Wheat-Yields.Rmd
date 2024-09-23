@@ -9,19 +9,14 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Impact of Cover Crops on Wheat Crop Yields
 
-As the global population continues to increase, scientists and policymakers are looking for ways to improve our agricultural systems so that we can feed more people.
+Introduction
 
-The data used in this project is adapted from the 2017 Census of Agriculture performed by the U.S. Department of Agriculture (USDA). This survey is a complete count and characterization of U.S. farms and agricultural producers. The data include various information about agricultural land area and use, farming practices, and crop yields at the county level.
+As the global population continues to grow, the demand for sustainable agricultural practices that can support increased food production is becoming more critical. 
+Cover crops, a type of sustainable farming practice, are increasingly being used to improve soil health, reduce erosion, and manage weeds and pests. However, the impact of cover crops on the yields of staple crops such as wheat remains a subject of debate among farmers and researchers.
+This project aims to use causal inference techniques to evaluate whether the adoption of cover crops leads to an increase in wheat yields. 
+By applying methods such as inverse probability of treatment weighting (IPTW) and propensity score matching, we can better understand the true effect of cover crops while accounting for potential confounders like farm size, soil quality, and regional agricultural practices. 
+The findings from this analysis will provide insights that can help guide policy and farming decisions toward more effective and sustainable agricultural practices.
 
-There are several farming strategies that promote the long-term health of agricultural land:
-
-    Agricultural land easements: contracts between the government and farmers where the government pays landowners to leave areas of the land untouched.
-    
-    Conservation tillage: a method that helps protect the soil surface and reduce erosion from wind and water between crop harvest and planting.
-    
-    Cover crops: plants used to slow erosion, return nutrients to the soil, and help smother weeds and control pests.
-
-I am to use inverse probability of treatment weighting (IPTW) to determine whether the use of cover crops causes an increase in crop yields.
 
 # Import libraries
 ```{r, message=FALSE}
@@ -230,3 +225,11 @@ coeftest(
 ## Results Interpretation:
 
 My estimate of the ATE is about 3.58. I estimate that when counties have at least 10% of farms with cover crops, average total yield of wheat increases by about 3.58 bushels per acre.
+
+Conclusion
+
+The results of this analysis suggest that the use of cover crops has a positive impact on wheat yields. Specifically, the estimated Average Treatment Effect (ATE) indicates that counties where at least 10% of farms adopt cover crops experience an increase in wheat yields of approximately 3.58 bushels per acre compared to counties with lower adoption rates. This finding highlights the potential benefits of cover crops not only for soil health but also for crop productivity.
+
+However, it is important to note several limitations of this study. The analysis relies on observational data, which may still be subject to unmeasured confounding despite the use of causal inference methods. Additionally, the generalizability of these results may be limited by regional differences in farming practices and environmental conditions. Future research could benefit from more granular data and experimental studies to further validate these findings.
+
+Overall, this project demonstrates the utility of causal inference techniques in agricultural research and provides evidence supporting the use of cover crops as a beneficial practice for enhancing wheat yields. These insights can inform both policymakers and farmers in their efforts to implement more sustainable and productive farming practices.

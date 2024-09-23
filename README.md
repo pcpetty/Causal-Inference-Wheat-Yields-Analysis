@@ -15,7 +15,13 @@ The primary objective of this project is to use causal inference techniques to a
 
 ## Repository Structure
 
-Causal-Inference-Wheat-Yields-Analysis/ ├── data/ # Folder containing raw and processed data files ├── scripts/ # Folder containing R scripts for data processing and analysis ├── figures/ # Folder containing figures and visualizations generated from the analysis ├── docs/ # Additional documentation and resources ├── Causal-Inference-Cover-Crops-Wheat-Yields.Rmd # RMarkdown file with full analysis ├── README.md # Project documentation (this file) └── requirements.txt # List of R packages required for the analysis
+Causal-Inference-Wheat-Yields-Analysis/
+├── data/                          # Folder containing raw and processed data files
+├── figures/                       # Folder containing figures and visualizations generated from the analysis
+├── Causal-Inference-Cover-Crops-Wheat-Yields.Rmd  # RMarkdown file with full analysis
+├── README.md                      # Project documentation (this file)
+└── requirements.txt               # List of R packages required for the analysis
+
 
 ## Data
 
